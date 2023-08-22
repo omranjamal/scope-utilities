@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "test": "npm run build && mocha -r ts-node/register tests/**/*.test.ts"
+    "test": "mocha -r ts-node/register tests/**/*.test.mts"
   },
   "devDependencies": {
     "@types/chai": "^4.3.5",
