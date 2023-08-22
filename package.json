@@ -1,0 +1,37 @@
+{
+  "name": "scope-utilities",
+  "version": "1.1.0",
+  "description": "",
+  "keywords": [
+    "scope",
+    "function",
+    "kotlin"
+  ],
+  "main": "./dist/index.mjs",
+  "author": {
+    "name": "Omran Jamal",
+    "email": "omran@omranjamal.me",
+    "url": "https://omranjamal.me"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "test": "npm run build && mocha -r ts-node/register tests/**/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "20.5.0",
+    "chai": "^4.3.7",
+    "concurrently": "^8.0.1",
+    "mocha": "^10.2.0",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/omranjamal/scope-utilities.git"
+  }
+}
