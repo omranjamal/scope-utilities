@@ -1,11 +1,9 @@
 export function scope<TYPE>(object: TYPE) {
-
   function letFunc<RETURN_TYPE>(
-    func: (object: TYPE) => RETURN_TYPE
+    func: (object: TYPE) => RETURN_TYPE,
   ): RETURN_TYPE {
     return func(object);
   }
-
 
   function withFunc<RETURN_TYPE>(func: {
     (this: TYPE): RETURN_TYPE;
@@ -14,17 +12,12 @@ export function scope<TYPE>(object: TYPE) {
     return (boundFunction as any)();
   }
 
-
   function runFunc<RETURN_TYPE>(func: {
     (this: TYPE): RETURN_TYPE;
   }): RETURN_TYPE {
     const boundFunction = func.bind(object);
     return (boundFunction as any)();
   }
-
-
-
-
 
   function applyFunc(func: { (this: TYPE): Promise<void> }): Promise<TYPE>;
 
@@ -48,16 +41,12 @@ export function scope<TYPE>(object: TYPE) {
     }
   }
 
-
-
-
-
   function alsoFunc(func: (object: TYPE) => Promise<void>): Promise<TYPE>;
 
   function alsoFunc(func: (object: TYPE) => void): TYPE;
 
   function alsoFunc(
-    func: (object: TYPE) => Promise<void> | void
+    func: (object: TYPE) => Promise<void> | void,
   ): Promise<TYPE> | TYPE {
     const result = func(object);
 
@@ -74,18 +63,14 @@ export function scope<TYPE>(object: TYPE) {
     }
   }
 
-
-
-
-
   function takeIfFunc(func: (object: TYPE) => boolean): TYPE | null;
 
   function takeIfFunc(
-    func: (object: TYPE) => Promise<boolean>
+    func: (object: TYPE) => Promise<boolean>,
   ): Promise<TYPE | null>;
 
   function takeIfFunc(
-    func: (object: TYPE) => Promise<boolean> | boolean
+    func: (object: TYPE) => Promise<boolean> | boolean,
   ): Promise<TYPE | null> | TYPE | null {
     const result = func(object);
 
@@ -105,19 +90,15 @@ export function scope<TYPE>(object: TYPE) {
       return result ? object : null;
     }
   }
-
-
-
-
 
   function takeUnlessFunc(func: (object: TYPE) => boolean): TYPE | null;
 
   function takeUnlessFunc(
-    func: (object: TYPE) => Promise<boolean>
+    func: (object: TYPE) => Promise<boolean>,
   ): Promise<TYPE | null>;
 
   function takeUnlessFunc(
-    func: (object: TYPE) => Promise<boolean> | boolean
+    func: (object: TYPE) => Promise<boolean> | boolean,
   ): Promise<TYPE | null> | TYPE | null {
     const result = func(object);
 
@@ -134,13 +115,9 @@ export function scope<TYPE>(object: TYPE) {
           .catch(reject);
       });
     } else {
-      return result ? object : null;
+      return result ? null : object;
     }
   }
-
-
-
-
 
   return {
     let: letFunc,
@@ -166,11 +143,9 @@ export function scope<TYPE>(object: TYPE) {
   };
 }
 
-
 export function run<T>(func: () => T): T {
   return func();
 }
-
 
 export function returnOf<T>(func: () => T): T {
   return func();
