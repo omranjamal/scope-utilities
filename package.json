@@ -1,6 +1,6 @@
 {
   "name": "scope-utilities",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Bringing Kotlin's scope functions to JavaScript / TypeScript (and maybe adding a few more nice-to-haves).",
   "keywords": [
     "scope",
@@ -8,6 +8,7 @@
     "kotlin"
   ],
   "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "author": {
     "name": "Omran Jamal",
     "email": "omran@omranjamal.me",
