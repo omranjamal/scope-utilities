@@ -1,150 +1,67 @@
-export function scope<TYPE>(object: TYPE) {
-  function letFunc<RETURN_TYPE>(
-    func: (object: TYPE) => RETURN_TYPE,
-  ): RETURN_TYPE {
-    return func(object);
-  }
+export type OptionallyUnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 
-  function withFunc<RETURN_TYPE>(func: {
-    (this: TYPE): RETURN_TYPE;
-  }): RETURN_TYPE {
-    const boundFunction = func.bind(object);
-    return (boundFunction as any)();
-  }
+export interface IScoped<T> {
+  let<RT>(
+    func: (value: OptionallyUnwrapPromise<T>) => RT,
+  ): IScoped<
+    T extends Promise<infer REAL_T> ? Promise<OptionallyUnwrapPromise<RT>> : RT
+  >;
 
-  function runFunc<RETURN_TYPE>(func: {
-    (this: TYPE): RETURN_TYPE;
-  }): RETURN_TYPE {
-    const boundFunction = func.bind(object);
-    return (boundFunction as any)();
-  }
+  also(
+    func: (value: OptionallyUnwrapPromise<T>) => void,
+  ): IScoped<
+    T extends Promise<infer REAL_T> ? Promise<OptionallyUnwrapPromise<T>> : T
+  >;
 
-  function applyFunc(func: { (this: TYPE): Promise<void> }): Promise<TYPE>;
+  value(): T;
+}
 
-  function applyFunc(func: { (this: TYPE): void }): TYPE;
-
-  function applyFunc(func: {
-    (this: TYPE): Promise<void> | void;
-  }): Promise<TYPE> | TYPE {
-    const result = (func.bind(object) as any)();
-
-    if (result instanceof Promise) {
-      return new Promise((accept, reject) => {
-        result
-          .then(() => {
-            accept(object);
-          })
-          .catch(reject);
-      });
+export function scope<TYPE>(value: TYPE): IScoped<TYPE> {
+  function letFunc(func: (value: any) => any) {
+    if (value instanceof Promise) {
+      return scope(
+        new Promise((accept, reject) => {
+          value
+            .then((awaitedValue) => {
+              accept(func(awaitedValue));
+            })
+            .catch(reject);
+        }),
+      );
     } else {
-      return object;
+      return scope(func(value as any));
     }
   }
 
-  function alsoFunc(func: (object: TYPE) => Promise<void>): Promise<TYPE>;
-
-  function alsoFunc(func: (object: TYPE) => void): TYPE;
-
-  function alsoFunc(
-    func: (object: TYPE) => Promise<void> | void,
-  ): Promise<TYPE> | TYPE {
-    const result = func(object);
-
-    if (result instanceof Promise) {
-      return new Promise((accept, reject) => {
-        result
-          .then(() => {
-            accept(object);
-          })
-          .catch(reject);
-      });
+  function alsoFunc(func: (value: any) => void) {
+    if (value instanceof Promise) {
+      return scope(
+        new Promise((accept, reject) => {
+          value
+            .then((awaitedValue) => {
+              func(awaitedValue);
+              accept(value);
+            })
+            .catch(reject);
+        }),
+      );
     } else {
-      return object;
-    }
-  }
-
-  function takeIfFunc(func: (object: TYPE) => boolean): TYPE | null;
-
-  function takeIfFunc(
-    func: (object: TYPE) => Promise<boolean>,
-  ): Promise<TYPE | null>;
-
-  function takeIfFunc(
-    func: (object: TYPE) => Promise<boolean> | boolean,
-  ): Promise<TYPE | null> | TYPE | null {
-    const result = func(object);
-
-    if (result instanceof Promise) {
-      return new Promise((accept, reject) => {
-        result
-          .then((pass) => {
-            if (pass) {
-              accept(object);
-            } else {
-              accept(null);
-            }
-          })
-          .catch(reject);
-      });
-    } else {
-      return result ? object : null;
-    }
-  }
-
-  function takeUnlessFunc(func: (object: TYPE) => boolean): TYPE | null;
-
-  function takeUnlessFunc(
-    func: (object: TYPE) => Promise<boolean>,
-  ): Promise<TYPE | null>;
-
-  function takeUnlessFunc(
-    func: (object: TYPE) => Promise<boolean> | boolean,
-  ): Promise<TYPE | null> | TYPE | null {
-    const result = func(object);
-
-    if (result instanceof Promise) {
-      return new Promise((accept, reject) => {
-        result
-          .then((pass) => {
-            if (pass) {
-              accept(null);
-            } else {
-              accept(object);
-            }
-          })
-          .catch(reject);
-      });
-    } else {
-      return result ? null : object;
+      return scope(value);
     }
   }
 
   return {
-    let: letFunc,
-    letFunc: letFunc,
+    let: letFunc as any,
+    also: alsoFunc as any,
 
-    with: withFunc,
-    withFunc: withFunc,
-
-    run: runFunc,
-    runFunc: runFunc,
-
-    apply: applyFunc,
-    applyFunc: applyFunc,
-
-    also: alsoFunc,
-    alsoFunc: alsoFunc,
-
-    takeIf: takeIfFunc,
-    takeIfFunc: takeIfFunc,
-
-    takeUnless: takeUnlessFunc,
-    takeUnlessFunc: takeUnlessFunc,
+    value() {
+      return value;
+    },
   };
 }
 
-export function run<T>(func: () => T): T {
-  return func();
+export function run<T>(func: () => T): ReturnType<typeof scope<T>> {
+  return scope(func());
 }
 
 export function returnOf<T>(func: () => T): T {
