@@ -2,15 +2,19 @@ export type OptionallyUnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 
 export interface IScoped<T> {
   let<RT>(
-    func: (value: OptionallyUnwrapPromise<T>) => RT,
+    func: (value: OptionallyUnwrapPromise<T>) => RT
   ): IScoped<
     T extends Promise<infer REAL_T> ? Promise<OptionallyUnwrapPromise<RT>> : RT
   >;
 
-  also(
-    func: (value: OptionallyUnwrapPromise<T>) => void,
+  also<RT extends void | Promise<void>>(
+    func: (value: OptionallyUnwrapPromise<T>) => RT
   ): IScoped<
-    T extends Promise<infer REAL_T> ? Promise<OptionallyUnwrapPromise<T>> : T
+    T extends Promise<infer REAL_T>
+      ? Promise<OptionallyUnwrapPromise<T>>
+      : RT extends Promise<any>
+      ? Promise<OptionallyUnwrapPromise<T>>
+      : T
   >;
 
   value(): T;
@@ -26,27 +30,52 @@ export function scope<TYPE>(value: TYPE): IScoped<TYPE> {
               accept(func(awaitedValue));
             })
             .catch(reject);
-        }),
+        })
       );
     } else {
       return scope(func(value as any));
     }
   }
 
-  function alsoFunc(func: (value: any) => void) {
+  function alsoFunc(
+    func: ((value: any) => void) | ((value: any) => Promise<void>)
+  ) {
     if (value instanceof Promise) {
       return scope(
         new Promise((accept, reject) => {
           value
             .then((awaitedValue) => {
-              func(awaitedValue);
-              accept(value);
+              const funcReturn = func(awaitedValue);
+
+              if (funcReturn instanceof Promise) {
+                funcReturn
+                  .then(() => {
+                    accept(value);
+                  })
+                  .catch(reject);
+              } else {
+                accept(value);
+              }
             })
             .catch(reject);
-        }),
+        })
       );
     } else {
-      return scope(value);
+      const funcReturn = func(value);
+
+      if (funcReturn instanceof Promise) {
+        return scope(
+          new Promise((accept, reject) => {
+            funcReturn
+              .then(() => {
+                accept(value);
+              })
+              .catch(reject);
+          })
+        );
+      } else {
+        return scope(value);
+      }
     }
   }
 
@@ -60,7 +89,7 @@ export function scope<TYPE>(value: TYPE): IScoped<TYPE> {
   };
 }
 
-export function run<T>(func: () => T): ReturnType<typeof scope<T>> {
+export function run<T>(func: () => T): IScoped<T> {
   return scope(func());
 }
 
