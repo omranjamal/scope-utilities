@@ -1,9 +1,11 @@
 {
   "name": "scope-utilities",
-  "version": "2.1.0",
-  "description": "Bringing Kotlin's scope functions to JavaScript / TypeScript (and maybe adding a few more nice-to-haves).",
+  "version": "2.2.1",
+  "description": "Use the JavaScript pipeline operator's model using inspiration from Kotlin's scope functions.",
   "keywords": [
     "scope",
+    "pipeline",
+    "operator",
     "function",
     "kotlin"
   ],
